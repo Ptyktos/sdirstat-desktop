@@ -1,14 +1,13 @@
-# sdirstat-desktop — native desktop app
+# sdirstat-desktop
 
-A [Tauri](https://tauri.app) shell around the existing sdirstat GUI. It launches the bundled
-`sdirstat` binary as a **sidecar** (`sdirstat serve` on a free `127.0.0.1` port) and opens a native
-window pointed at it — so the same `app.html` (treemap / sunburst / type-stats / Open·Reveal·Trash)
-runs unchanged, with **no frontend rewrite**.
+A [Tauri](https://tauri.app) shell around [sdirstat](https://github.com/Ptyktos/sdirstat)'s
+built-in GUI. It launches the `sdirstat` CLI as a **sidecar** (`sdirstat serve` on a free
+`127.0.0.1` port) and opens a native window pointed at it — so the same web GUI (treemap /
+sunburst / type-stats / Open·Reveal·Trash) runs unchanged, with no frontend rewrite.
 
-This crate is deliberately **not** a member of the root workspace (`exclude = ["desktop"]` in the
-top-level `Cargo.toml`): it carries the Tauri dependency tree, while the core `sdirstat` crate stays
-zero-dependency (std-only). The core is reused **as-is**, via the sidecar — the desktop app adds no
-requirements to it.
+This repo carries the Tauri dependency tree; the core `sdirstat` crate it wraps stays
+zero-dependency (std-only) in its own repo. The core is reused as-is via the sidecar — this app
+adds no requirements to it.
 
 ## Prerequisites
 
@@ -18,26 +17,24 @@ requirements to it.
 
 ## Build & run
 
-The sidecar is the core binary, staged under `binaries/` with the target-triple suffix Tauri
-expects. Build the core first, stage it, then build/run the app:
+The sidecar is the [sdirstat](https://github.com/Ptyktos/sdirstat) CLI binary, staged under
+`binaries/` with the target-triple suffix Tauri expects.
 
 ```sh
-# from the repo root — build the zero-dep core
-cargo build --release
-
-# stage it as the sidecar for this host (adjust the triple per platform)
-mkdir -p desktop/binaries
-cp target/release/sdirstat desktop/binaries/sdirstat-$(rustc -vV | sed -n 's/host: //p')
+# build (or download) the sdirstat CLI, then stage it as this host's sidecar
+mkdir -p binaries
+cp /path/to/sdirstat binaries/sdirstat-$(rustc -vV | sed -n 's/host: //p')
 
 # run the app (dev), or build native installers
-cd desktop
 cargo tauri dev
 cargo tauri build --bundles deb      # Linux .deb   (AppImage: add `appimage`, best-effort)
 cargo tauri build                    # Windows .msi + NSIS .exe
 cargo tauri build --target universal-apple-darwin --bundles dmg   # macOS universal .dmg
 ```
 
-CI builds all of these on tag push — see [`../.github/workflows/release.yml`](../.github/workflows/release.yml).
+CI does the same on tag push, pulling the matching CLI binary from
+[sdirstat's latest release](https://github.com/Ptyktos/sdirstat/releases) instead of building it —
+see [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 > **Tested status:** only the Linux path (`.deb`) has been built and run. The Windows
 > (`.msi`/NSIS) and macOS (universal `.dmg`) bundles are **untested** — no Win/Mac host was
@@ -50,3 +47,17 @@ CI builds all of these on tag push — see [`../.github/workflows/release.yml`](
   `/usr/bin/sdirstat`, alongside `/usr/bin/sdirstat-desktop`).
 - The sidecar is terminated when the app exits (window close / quit) via `RunEvent::Exit`. A
   `SIGKILL` of the app is the one path Tauri can't intercept and could orphan the child.
+
+## Release pipeline (TODO — not fully carried over from the monorepo split)
+
+This repo was split out of `Ptyktos/sdirstat`'s `desktop/` directory, where CI used to build the
+CLI and this app together in one job. Splitting them means this repo's own `release.yml` now
+downloads a released CLI binary from `Ptyktos/sdirstat` instead of building it — see that
+workflow for the mechanics. Still outstanding, and requiring an owner decision rather than a
+mechanical fix:
+
+- **Code signing**: Apple Developer / Windows Authenticode certs were never configured in the
+  original repo either (see its `docs/SIGNING.md`) — unsigned builds ship as before.
+- **winget / chocolatey**: the original `publish.yml` bundled this app's `.msi` into the winget
+  submission and chocolatey package. That cross-repo reference needs to move here (or be
+  redesigned around two independently-versioned releases) — not done in this split.

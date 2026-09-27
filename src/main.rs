@@ -5,7 +5,10 @@
 // native window pointed at it. Because the window's origin *is* the loopback server, the
 // existing GUI (`app.html`, served at `/`) and its `fetch('/scan')` / `/act` calls work
 // unchanged — no frontend rewrite, and the zero-dependency core stays untouched.
-#![cfg_attr(all(not(debug_assertions), target_os = "windows"), windows_subsystem = "windows")]
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
 
 use std::net::{TcpListener, TcpStream};
 use std::sync::Mutex;
