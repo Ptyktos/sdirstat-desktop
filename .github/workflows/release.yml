@@ -63,7 +63,7 @@ jobs:
           else
             echo "::warning::AppImage bundling failed (linuxdeploy-plugin-gtk); shipping .deb only"
           fi
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: linux, path: dist/* }
 
   windows:
@@ -95,7 +95,7 @@ jobs:
           cargo tauri build
           cp target/release/bundle/msi/*.msi  dist/ || echo "msi skipped"
           cp target/release/bundle/nsis/*.exe dist/ || echo "nsis skipped"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: windows, path: dist/* }
 
   # DISABLED: no Apple Developer certs configured (matches the original pipeline's state).
@@ -138,7 +138,7 @@ jobs:
           mkdir -p dist
           cargo tauri build --target universal-apple-darwin --bundles dmg
           cp target/universal-apple-darwin/release/bundle/dmg/*.dmg dist/ || echo "dmg skipped"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: macos, path: dist/* }
 
   release:
